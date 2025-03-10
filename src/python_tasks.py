@@ -1,4 +1,4 @@
-from runcommand import *
+from src.runcommand import run_command
 
 def run_pylint(files):
     if files:

@@ -6,43 +6,112 @@
     <style>
         body {
             font-family: sans-serif;
-            padding: 20px;
+            background-color: black;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            transition: all 0.5s ease;
         }
+
+        h1 {
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
         .upload-box {
-            border: 2px dashed #999;
+            border: 2px dashed #888;
             padding: 20px;
             margin-bottom: 20px;
-            text-align: center;
+            width: 60%;
             cursor: pointer;
+            transition: 0.3s;
         }
+
+        .upload-box:hover {
+            border-color: lime;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 60%;
+            border-radius: 5px;
+            border: none;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: lime;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: darkgreen;
+        }
+
+        #project-name-section,
+        #upload-button {
+            display: none;
+        }
+
         #iframe-container {
-            width: 100%;
-            height: 600px;
-            border: 1px solid #ccc;
-            margin-top: 20px;
+            width: 25cm;
+            height: 35cm;
+            border: 2px solid white;
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px lime;
+            animation: fadeIn 1s ease-in-out;
         }
+
         iframe {
             width: 100%;
             height: 100%;
             border: none;
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 <body>
+
     <h1>DeployX - Website Previewer</h1>
 
     <form id="upload-form">
-        <label>Project Folder Name: <input type="text" name="folder_name" required></label><br><br>
         <div class="upload-box" id="drop-area">
             <p>Drag and drop your project files here</p>
             <input type="file" id="fileElem" name="files[]" multiple style="display:none">
             <button type="button" onclick="document.getElementById('fileElem').click();">Browse Files</button>
         </div>
+
+        <div id="project-name-section">
+            <label>Project Folder Name:</label><br>
+            <input type="text" name="folder_name" id="project-name-input" required>
+        </div>
+
         <br>
-        <button type="submit">Upload & Preview</button>
+        <button type="submit" id="upload-button">Upload & Preview</button>
     </form>
 
-    <div id="iframe-container" style="display: none;">
+    <div id="iframe-container">
         <h3>Live Preview</h3>
         <iframe id="preview-frame"></iframe>
     </div>
@@ -51,8 +120,15 @@
         const dropArea = document.getElementById('drop-area');
         const fileInput = document.getElementById('fileElem');
         const form = document.getElementById('upload-form');
-        let filesToUpload = [];
+        const projectNameSection = document.getElementById('project-name-section');
+        const projectNameInput = document.getElementById('project-name-input');
+        const uploadButton = document.getElementById('upload-button');
+        const iframeContainer = document.getElementById('iframe-container');
 
+        let filesToUpload = [];
+        let filesUploaded = false;
+
+        // Drag and Drop Events
         dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropArea.style.borderColor = 'green';
@@ -60,23 +136,41 @@
 
         dropArea.addEventListener('dragleave', (e) => {
             e.preventDefault();
-            dropArea.style.borderColor = '#999';
+            dropArea.style.borderColor = '#888';
         });
 
         dropArea.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropArea.style.borderColor = '#999';
+            dropArea.style.borderColor = '#888';
             filesToUpload.push(...e.dataTransfer.files);
             alert(`${filesToUpload.length} file(s) added.`);
+
+            filesUploaded = true;
+            projectNameSection.style.display = 'block';
         });
 
+        // File Browse
         fileInput.addEventListener('change', () => {
             filesToUpload.push(...fileInput.files);
             alert(`${filesToUpload.length} file(s) added.`);
+
+            filesUploaded = true;
+            projectNameSection.style.display = 'block';
         });
 
+        // Show Upload Button after Project Name Entered
+        projectNameInput.addEventListener('input', () => {
+            if (projectNameInput.value.trim() !== '' && filesUploaded) {
+                uploadButton.style.display = 'inline-block';
+            } else {
+                uploadButton.style.display = 'none';
+            }
+        });
+
+        // Submit Form
         form.addEventListener('submit', (e) => {
             e.preventDefault();
+
             const formData = new FormData(form);
             for (let file of filesToUpload) {
                 formData.append('files[]', file);
@@ -88,12 +182,14 @@
             })
             .then(res => res.json())
             .then(data => {
-                if (data.status === 'static') {
+                if (data.status === 'static' || data.status === 'flask') {
                     document.getElementById('preview-frame').src = data.url;
-                    document.getElementById('iframe-container').style.display = 'block';
-                } else if (data.status === 'flask') {
-                    document.getElementById('preview-frame').src = data.url;
-                    document.getElementById('iframe-container').style.display = 'block';
+
+                    // Hide everything else
+                    form.style.display = 'none';
+
+                    // Show Preview
+                    iframeContainer.style.display = 'block';
                 } else {
                     alert('Error: ' + data.message);
                 }
@@ -103,5 +199,6 @@
             });
         });
     </script>
+
 </body>
 </html>

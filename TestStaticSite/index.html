@@ -1,14 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Test Site</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Complex Heavy Website</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="script.js" defer></script>
 </head>
 <body>
-  <h1>Hello from DeployX Static Site!</h1>
-  <button onclick="showMsg()">Click Me</button>
-  <p id="msg"></p>
-  <script src="script.js"></script>
+
+  <header id="home">
+    <nav class="navbar">
+      <div class="logo">ComplexSite</div>
+      <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#team">Team</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="hero">
+      <h1>Welcome to a Complex Heavy Website</h1>
+      <p>We build powerful and beautiful web experiences.</p>
+      <button onclick="scrollToSection('services')">Explore More</button>
+    </div>
+  </header>
+
+  <section id="services">
+    <h2 class="section-title">Our Services</h2>
+    <div class="card-container">
+      <div class="card">
+        <h3>Web Development</h3>
+        <p>We build scalable and beautiful websites and applications.</p>
+      </div>
+      <div class="card">
+        <h3>App Design</h3>
+        <p>Our team designs immersive user experiences for mobile platforms.</p>
+      </div>
+      <div class="card">
+        <h3>AI & ML Solutions</h3>
+        <p>We integrate artificial intelligence into real-world use cases.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="team">
+    <h2 class="section-title">Meet the Team</h2>
+    <div class="team-container">
+      <div class="member" onclick="openModal('john')">
+        <img src="https://via.placeholder.com/150" alt="John"/>
+        <p>John - CEO</p>
+      </div>
+      <div class="member" onclick="openModal('jane')">
+        <img src="https://via.placeholder.com/150" alt="Jane"/>
+        <p>Jane - CTO</p>
+      </div>
+      <div class="member" onclick="openModal('mike')">
+        <img src="https://via.placeholder.com/150" alt="Mike"/>
+        <p>Mike - Designer</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <h2 class="section-title">Contact Us</h2>
+    <form id="contactForm">
+      <input type="text" id="name" placeholder="Your Name" required />
+      <input type="email" id="email" placeholder="Your Email" required />
+      <textarea id="message" placeholder="Your Message" required></textarea>
+      <button type="submit">Send Message</button>
+    </form>
+    <div id="form-message"></div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 ComplexSite Inc.</p>
+  </footer>
+
+  <!-- Modals -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h3 id="modal-title"></h3>
+      <p id="modal-description"></p>
+    </div>
+  </div>
+
 </body>
 </html>
