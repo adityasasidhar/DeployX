@@ -53,6 +53,7 @@ def upload_project():
         file.save(filepath)
     lang_percentages = get_lang_percentage(project_path)
     print(lang_percentages)
+    run_all_checks(project_path)
 
     if os.path.exists(os.path.join(project_path, 'app.py')):
         try:

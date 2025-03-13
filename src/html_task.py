@@ -1,10 +1,10 @@
 from src.runcommand import run_command
-from html.parser import HTMLParser
 from lxml import etree, html
 
 def run_htmlhint(files):
     if files:
         run_command(f"htmlhint {' '.join(files)}", "HTMLHint")
+
 
 def is_valid_html(file_path):
     try:

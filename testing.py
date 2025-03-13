@@ -15,6 +15,7 @@ def check_html_file(file_path):
         body = tree.find('body')
         if head is None or body is None:
             return False
+        print(f"The file {file_path} is valid")
         return True
     except etree.XMLSyntaxError:
         print(f"XML syntax error in {file_path}")
@@ -32,6 +33,7 @@ def check_css_file(file_path):
             if rule.type == "error":
                 print(f"CSS syntax error in {file_path}")
                 return False
+        print(f"The file {file_path} is valid")
         return True
     except Exception as e:
         print(f"CSS check error in {file_path}: {e}")
@@ -47,6 +49,8 @@ def run_js_linter(files):
         except Exception as e:
             print(f"JS Syntax Error in {file}: {e}")
             all_valid = False
+
+    print(f"The file {files} is valid")
     return all_valid
 
 def check_python_file(file_path):
@@ -55,6 +59,7 @@ def check_python_file(file_path):
             with open(file_path, "r", encoding="utf-8") as f:
                 source = f.read()
             compile(source, file_path, 'exec')
+            print(f"The file {file_path} is valid")
             return True
         except (SyntaxError, IndentationError) as e:
             print(f"Syntax Error in {file_path}: {e}")
@@ -73,7 +78,7 @@ def check_python_file(file_path):
 
     is_valid = is_python_code_valid(file_path) and is_python_file_runnable(file_path)
     if is_valid:
-        print(f"Python file {file_path} is stable and clear ✅")
+      print(f"Python file {file_path} is stable and clear ✅")
     return is_valid
 
 def collect_relevant_files(directory):
@@ -130,6 +135,4 @@ def lint_project(path="."):
         return
     run_all_checks(path)
 
-path = 'TestStaticSite'
-run_all_checks(path)
 
