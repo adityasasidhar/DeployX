@@ -59,7 +59,6 @@ def upload_project():
         try:
             port = 5001
             subprocess.Popen(['python', 'app.py'], cwd=project_path)
-            time.sleep(2)
             return jsonify({
                 'status': 'flask',
                 'url': f'http://localhost:{port}',
