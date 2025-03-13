@@ -1,71 +1,80 @@
 import os
-import cssutils
 import esprima
 import subprocess
+from lxml import etree, html
+import tinycss2
 
-# HTML Linter
-def run_html_linter(files):
-    from tidylib import tidy_document
-    for file in files:
-        try:
-            with open(file, 'r', encoding='utf-8') as f:
-                html = f.read()
-                _, errors = tidy_document(html, options={"show-warnings": True})
-                if not errors.strip():
-                    return 1
-                else:
-                    return 0
-        except Exception:
-            return 0
+def check_html_file(file_path):
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        tree = html.fromstring(content)
+        if tree.tag != 'html':
+            return False
+        head = tree.find('head')
+        body = tree.find('body')
+        if head is None or body is None:
+            return False
+        return True
+    except etree.XMLSyntaxError:
+        print(f"XML syntax error in {file_path}")
+        return False
+    except Exception as e:
+        print(f"Unexpected error in {file_path}: {e}")
+        return False
 
-# CSS Linter
-def run_css_linter(files):
-    cssutils.log.setLevel('FATAL')  # Suppress cssutils logs
-    for file in files:
-        try:
-            with open(file, "r", encoding="utf-8") as f:
-                css = f.read()
-                parser = cssutils.CSSParser()
-                parser.parseString(css)
-                return 1
-        except Exception:
-            return 0
+def check_css_file(file_path):
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            css_content = f.read()
+        rules = tinycss2.parse_stylesheet(css_content, skip_comments=True, skip_whitespace=True)
+        for rule in rules:
+            if rule.type == "error":
+                print(f"CSS syntax error in {file_path}")
+                return False
+        return True
+    except Exception as e:
+        print(f"CSS check error in {file_path}: {e}")
+        return False
 
-# JS Linter
 def run_js_linter(files):
+    all_valid = True
     for file in files:
         try:
             with open(file, "r", encoding="utf-8") as f:
                 js_code = f.read()
                 esprima.parseScript(js_code)
-                return 1
-        except Exception:
-            return 0
+        except Exception as e:
+            print(f"JS Syntax Error in {file}: {e}")
+            all_valid = False
+    return all_valid
 
-# Generic Runner for Python linters
-def run_command(cmd, name):
-    result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if result.returncode == 0:
-        return 1
-    else:
-        return 0
+def check_python_file(file_path):
+    def is_python_code_valid(file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                source = f.read()
+            compile(source, file_path, 'exec')
+            return True
+        except (SyntaxError, IndentationError) as e:
+            print(f"Syntax Error in {file_path}: {e}")
+            return False
+        except Exception as e:
+            print(f"Other Error in {file_path}: {e}")
+            return False
 
-def run_pylint(files):
-    if files:
-        run_command(f"pylint --disable=all --enable=errors {' '.join(files)}", "Pylint")
+    def is_python_file_runnable(file_path):
+        try:
+            result = subprocess.run(["python", "-m", "py_compile", file_path], capture_output=True, text=True)
+            return result.returncode == 0
+        except Exception as e:
+            print(f"Runtime check error: {e}")
+            return False
 
-def run_flake8(files):
-    if files:
-        run_command(f"flake8 {' '.join(files)}", "Flake8")
-
-def run_mypy(files):
-    if files:
-        run_command(f"mypy {' '.join(files)}", "Mypy")
-
-def run_bandit(files):
-    if files:
-        run_command(f"bandit -r {' '.join(files)}", "Bandit")
-
+    is_valid = is_python_code_valid(file_path) and is_python_file_runnable(file_path)
+    if is_valid:
+        print(f"Python file {file_path} is stable and clear ✅")
+    return is_valid
 
 def collect_relevant_files(directory):
     EXCLUDED_EXTENSIONS = {
@@ -74,8 +83,7 @@ def collect_relevant_files(directory):
         ".swiftmodule", ".hmap", ".dSYM", ".pm", ".gem", ".rbc",
         ".log", ".trace", ".dmp", ".bak", ".ini", ".cfg", ".toml", ".properties",
         ".lock", ".tmp", ".swp", ".swo", ".old", ".zip", ".tar", ".gz", ".bz2", ".xz",
-        ".rar", ".7z",
-        ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".svg",
+        ".rar", ".7z", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".svg",
         ".mp3", ".wav", ".ogg", ".mp4", ".mkv", ".avi", ".mov",
         ".pdf", ".docx", ".xlsx", ".pptx", ".csv", ".tsv",
         ".db", ".sqlite", ".sqlite3", ".mdb", ".vmdk", ".qcow2", ".vdi", ".iso",
@@ -85,17 +93,14 @@ def collect_relevant_files(directory):
     EXCLUDED_DIRS = {
         ".venv", "env", "node_modules", "vendor", "target", "bin",
         ".git", ".idea", ".vscode", ".metadata", ".gradle", ".mvn",
-        ".docker", ".terraform", ".kitchen",
-        "CMakeFiles", "build", "dist", "__pycache__"
+        ".docker", ".terraform", ".kitchen", "CMakeFiles", "build", "dist", "__pycache__"
     }
 
     file_types = {'.py': [], '.html': [], '.css': [], '.js': []}
     valid_extensions = set(file_types.keys())
 
     for root, dirs, files in os.walk(directory):
-        # Remove excluded dirs in-place for performance
         dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
-
         for file in files:
             ext = os.path.splitext(file)[1]
             if ext in valid_extensions and ext not in EXCLUDED_EXTENSIONS:
@@ -103,35 +108,28 @@ def collect_relevant_files(directory):
 
     return file_types
 
-
 def run_all_checks(directory):
     file_types = collect_relevant_files(directory)
 
-    if file_types['.py']:
-        run_pylint(file_types['.py'])
-        run_flake8(file_types['.py'])
-        run_mypy(file_types['.py'])
-        run_bandit(file_types['.py'])
+    for py_file in file_types['.py']:
+        check_python_file(py_file)
 
-    if file_types['.js']:
-        run_js_linter(file_types['.js'])
+    run_js_linter(file_types['.js'])
 
-    if file_types['.css']:
-        run_css_linter(file_types['.css'])
+    for css_file in file_types['.css']:
+        check_css_file(css_file)
 
-    if file_types['.html']:
-        run_html_linter(file_types['.html'])
-
+    for html_file in file_types['.html']:
+        check_html_file(html_file)
 
 def lint_project(path="."):
     path = os.path.abspath(path)
     print(f"\n📁 Scanning project at: {path}")
-
     if not os.path.exists(path):
         print(f"❌ The path '{path}' does not exist.")
         return
-
     run_all_checks(path)
 
 path = 'TestStaticSite'
 run_all_checks(path)
+

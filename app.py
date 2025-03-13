@@ -5,9 +5,11 @@ import subprocess
 from werkzeug.utils import secure_filename
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from src.language_task import get_lang_percentage
-from testing import lint_project
+from testing import lint_project, run_all_checks
 
 """
+
+
                                                        Flow of Program:
                                                                |
                                                   Upload the directory/files
@@ -24,6 +26,7 @@ from testing import lint_project
                                                         |
                                             restart the Flow of Program              
                                                                
+
 
 """
 app = Flask(__name__)
