@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from src.language_task import get_lang_percentage
 from testing import lint_project, run_all_checks
+from import_from_git import clone_github_repo
 
 """
 
