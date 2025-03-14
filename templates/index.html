@@ -8,7 +8,6 @@
     * {
       box-sizing: border-box;
     }
-
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #000;
@@ -22,20 +21,17 @@
       min-height: 100vh;
       text-align: center;
     }
-
     h1 {
       margin: 40px 0 20px;
       font-size: 2.5rem;
       color: lime;
       animation: fadeIn 1s ease-in-out;
     }
-
     .container {
       width: 90%;
       max-width: 800px;
       padding: 20px;
     }
-
     .upload-box {
       border: 2px dashed #555;
       padding: 30px;
@@ -46,16 +42,13 @@
       box-shadow: 0 0 10px #00ff0070;
       margin-bottom: 20px;
     }
-
     .upload-box:hover {
       border-color: lime;
       background-color: #181818;
     }
-
     input[type="file"] {
       display: none;
     }
-
     input[type="text"] {
       width: 100%;
       padding: 12px;
@@ -66,12 +59,10 @@
       color: white;
       border: 1px solid #444;
     }
-
     input[type="text"]:focus {
       outline: none;
       border-color: lime;
     }
-
     button {
       padding: 12px 24px;
       background-color: lime;
@@ -85,11 +76,9 @@
       box-shadow: 0 0 10px #00ff00a0;
       transition: 0.3s;
     }
-
     button:hover {
       background-color: darkgreen;
     }
-
     #file-list {
       margin-top: 10px;
       text-align: left;
@@ -98,7 +87,6 @@
       font-size: 14px;
       color: #ccc;
     }
-
     #iframe-container {
       width: 100%;
       max-width: 1000px;
@@ -111,13 +99,11 @@
       box-shadow: 0 0 20px lime;
       animation: fadeIn 1s ease-in-out;
     }
-
     iframe {
       width: 100%;
       height: 100%;
       border: none;
     }
-
     .loader {
       display: none;
       margin-top: 20px;
@@ -128,17 +114,14 @@
       height: 40px;
       animation: spin 1s linear infinite;
     }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.95); }
       to { opacity: 1; transform: scale(1); }
     }
-
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
     @media screen and (max-width: 768px) {
       h1 {
         font-size: 1.8rem;
@@ -228,6 +211,12 @@
       const folderName = document.getElementById('folderName').value.trim();
       const repoURL = form.querySelector('input[name="repo_url"]').value.trim();
 
+      if (!folderName) {
+        alert("Folder name is required.");
+        loader.style.display = 'none';
+        return;
+      }
+
       formData.append('folder_name', folderName);
       if (repoURL !== "") {
         formData.append('repo_url', repoURL);
@@ -244,17 +233,19 @@
       .then(res => res.json())
       .then(data => {
         loader.style.display = 'none';
+
         if (data.status === 'static' || data.status === 'flask') {
+          // Show preview URL in iframe
           previewFrame.src = data.url;
           form.style.display = 'none';
           iframeContainer.style.display = 'block';
         } else {
-          alert('Error: ' + data.message);
+          alert('Error: ' + data.message || 'Unknown error.');
         }
       })
       .catch(err => {
         loader.style.display = 'none';
-        alert('Upload failed: ' + err);
+        alert('Upload failed: ' + err.message);
       });
     });
   </script>

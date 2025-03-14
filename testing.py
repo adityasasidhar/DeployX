@@ -119,7 +119,8 @@ def run_all_checks(directory):
     for py_file in file_types['.py']:
         check_python_file(py_file)
 
-    check_js_file(file_types['.js'])
+    for js_file in file_types['.js']:
+      check_js_file(file_types['.js'])
 
     for css_file in file_types['.css']:
         check_css_file(css_file)
@@ -135,3 +136,4 @@ def lint_project(path="."):
         print(f"❌ The path '{path}' does not exist.")
         return
     run_all_checks(path)
+

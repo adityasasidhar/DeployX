@@ -10,7 +10,6 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 """
 
 
-
                                                        Flow of Program:
                                                                |
                                                   Upload the directory/files either
@@ -24,16 +23,21 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
                         {                   |                           {
                         clear the uploaded folder                       continue with the emulation and 
                         and reprompt for the correctness                display the website
-                                            |           }                                        }
-                                            |
-                                            |
-                                restart the Flow of Program              
-
-
-
+                                       |                }                                             }
+                                       |
+                          restart the Flow of Program              
 
 
 """
+
+# this comes from a person with strong node.js attachment
+# fix the errors beforehand
+# predominantly AI writes the code, code should not be changed unless the instruction has been specifically provided
+# automatic version detection
+# automating the testing the routes, api and all
+# take into account .env file
+# automatic route detection and directory based storage and testing, ai based
+# ALLOCATE MISPLACED ITEMS
 
 app = Flask(__name__)
 
@@ -82,6 +86,7 @@ def upload_project():
         except Exception as e:
             return jsonify({'status': 'error', 'message': str(e)})
 
+
     elif os.path.exists(os.path.join(project_path, 'index.html')):
         static_path = os.path.join(STATIC_SERVE_FOLDER, folder_name)
         if os.path.exists(static_path):
@@ -95,7 +100,7 @@ def upload_project():
 
     elif os.path.exists(os.path.join(project_path, 'package.json')):
         try:
-            port = 3000
+            port = 5001
             subprocess.Popen(['npm', 'install'], cwd=project_path)
             subprocess.Popen(['npm', 'start'], cwd=project_path)
             return jsonify({
@@ -119,6 +124,41 @@ def upload_project():
             'languages': lang_percentages
         })
 
+    elif os.path.exists(os.path.join(project_path, 'vite.config.js')):
+        try:
+            subprocess.run(['npm', 'install'], cwd=project_path)
+            subprocess.run(['npm', 'run', 'build'], cwd=project_path)
+            static_path = os.path.join(STATIC_SERVE_FOLDER, folder_name)
+            if os.path.exists(static_path):
+                shutil.rmtree(static_path)
+            shutil.copytree(os.path.join(project_path, 'dist'), static_path)
+            return jsonify({
+                'status': 'static',
+                'framework': 'Vite',
+                'url': f'/preview/{folder_name}/index.html',
+                'languages': lang_percentages
+            })
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': str(e)})
+
+    elif os.path.exists(os.path.join(project_path, 'parcel.config.js')):
+        try:
+            subprocess.run(['npm', 'install'], cwd=project_path)
+            subprocess.run(['npx', 'parcel', 'build', 'index.html'], cwd=project_path)
+            static_path = os.path.join(STATIC_SERVE_FOLDER, folder_name)
+            if os.path.exists(static_path):
+                shutil.rmtree(static_path)
+            shutil.copytree(os.path.join(project_path, 'dist'), static_path)
+            return jsonify({
+                'status': 'static',
+                'framework': 'Parcel',
+                'url': f'/preview/{folder_name}/index.html',
+                'languages': lang_percentages
+            })
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': str(e)})
+
+
     else:
         return jsonify({'status': 'error', 'message': 'Unknown project type: No app.py or index.html found'})
 
@@ -127,7 +167,6 @@ def upload_project():
 @app.route('/preview/<project>/<path:filename>')
 def preview_static(project, filename):
     return send_from_directory(os.path.join(STATIC_SERVE_FOLDER, project), filename)
-
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
