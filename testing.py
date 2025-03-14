@@ -11,6 +11,7 @@ def check_html_file(file_path):
         tree = html.fromstring(content)
         if tree.tag != 'html':
             return False
+
         head = tree.find('head')
         body = tree.find('body')
         if head is None or body is None:
@@ -134,5 +135,3 @@ def lint_project(path="."):
         print(f"❌ The path '{path}' does not exist.")
         return
     run_all_checks(path)
-
-
