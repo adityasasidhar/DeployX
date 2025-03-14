@@ -67,8 +67,6 @@ def clone_github_repo(repo_input, clone_dir=".", use_github_api=False, github_to
         print(f"⚠️ Error: {e}")
 
 
-
-
 """
 
 
@@ -88,7 +86,7 @@ def clone_github_repo(repo_input, clone_dir=".", use_github_api=False, github_to
                                                         }                                        }
                                                         |
                                             restart the Flow of Program              
-                                                               
+
 
 
 """
@@ -105,15 +103,25 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_project():
-    folder_name = secure_filename(request.form['folder_name'])
+    folder_name = secure_filename(request.form.get('folder_name', 'default_project'))
+    repo_url = request.form.get('repo_url', '').strip()
     project_path = os.path.join(UPLOAD_FOLDER, folder_name)
     os.makedirs(project_path, exist_ok=True)
-    print(project_path)
 
-    for file in request.files.getlist('files[]'):
-        filepath = os.path.join(project_path, file.filename)
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        file.save(filepath)
+    if repo_url:  # 📥 GitHub URL Upload
+        try:
+            clone_github_repo(repo_url, clone_dir=UPLOAD_FOLDER)
+            # Set project_path to cloned repo directory
+            repo_name = repo_url.rstrip('/').split('/')[-1].replace('.git', '')
+            project_path = os.path.join(UPLOAD_FOLDER, repo_name)
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': f'Failed to clone: {str(e)}'})
+    else:  # 📥 File Upload
+        for file in request.files.getlist('files[]'):
+            filepath = os.path.join(project_path, file.filename)
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            file.save(filepath)
+
     lang_percentages = get_lang_percentage(project_path)
     print(lang_percentages)
     lint_project(project_path)
@@ -142,9 +150,12 @@ def upload_project():
     else:
         return jsonify({'status': 'error', 'message': 'Unknown project type: No app.py or index.html found'})
 
+
+
 @app.route('/preview/<project>/<path:filename>')
 def preview_static(project, filename):
     return send_from_directory(os.path.join(STATIC_SERVE_FOLDER, project), filename)
+
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)

@@ -1,11 +1,8 @@
-import subprocess
 import os
-from src.language_task import get_lang_percentage
 from src.css_task import run_css_linter
 from src.python_tasks import run_mypy, run_bandit, run_pylint, run_command, run_flake8
 from src.js_tasks import run_js_linter
 from src.html_task import run_htmlhint
-from src.runcommand import run_command
 
 def collect_files(directory):
     """
@@ -13,7 +10,7 @@ def collect_files(directory):
     I added everything within the same function, assuming we don't care much about importing and code throttling
 
     """
-    EXCLUDED_EXTENSIONS = {
+    excluded_extensions = {
         ".pyc", ".pyo", ".pyd", ".class", ".o", ".obj", ".so", ".dll", ".dylib", ".exe",
         ".a", ".lib", ".jar", ".war", ".rlib", ".nupkg", ".kt", ".kts", ".scala", ".sbt",
         ".swiftmodule", ".hmap", ".dSYM", ".pm", ".gem", ".rbc",
@@ -29,7 +26,7 @@ def collect_files(directory):
         ".db", ".sqlite", ".sqlite3", ".mdb", ".vmdk", ".qcow2", ".vdi", ".iso",
         ".bin", ".dat", ".dump"
     }
-    EXCLUDED_DIRS = {
+    excluded_dirs = {
         ".venv", "env", "node_modules", "vendor", "target", "bin",
 
         ".git", ".idea", ".vscode", ".metadata", ".gradle", ".mvn",
@@ -43,17 +40,14 @@ def collect_files(directory):
 
 
     for root, _, files in os.walk(directory):
-        if any(excluded in root for excluded in EXCLUDED_DIRS):
+        if any(excluded in root for excluded in excluded_dirs):
             continue
         for file in files:
             ext = os.path.splitext(file)[1]
-            if ext in EXCLUDED_EXTENSIONS:
+            if ext in excluded_extensions:
                 continue
             file_types.setdefault(ext, []).append(os.path.join(root, file))
 
-def run_command(command, name):
-    print(f"\n🔍 Running {name}...")
-    subprocess.run(command, shell=True)
 
 def run_all_checks():
     file_types = {'.py': [], '.html': [], '.css': [], '.js': []}

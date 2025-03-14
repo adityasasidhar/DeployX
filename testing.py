@@ -39,7 +39,7 @@ def check_css_file(file_path):
         print(f"CSS check error in {file_path}: {e}")
         return False
 
-def run_js_linter(files):
+def check_js_file(files):
     all_valid = True
     for file in files:
         try:
@@ -67,7 +67,6 @@ def check_python_file(file_path):
         except Exception as e:
             print(f"Other Error in {file_path}: {e}")
             return False
-
     def is_python_file_runnable(file_path):
         try:
             result = subprocess.run(["python", "-m", "py_compile", file_path], capture_output=True, text=True)
@@ -119,13 +118,14 @@ def run_all_checks(directory):
     for py_file in file_types['.py']:
         check_python_file(py_file)
 
-    run_js_linter(file_types['.js'])
+    check_js_file(file_types['.js'])
 
     for css_file in file_types['.css']:
         check_css_file(css_file)
 
     for html_file in file_types['.html']:
         check_html_file(html_file)
+
 
 def lint_project(path="."):
     path = os.path.abspath(path)

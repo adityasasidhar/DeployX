@@ -90,6 +90,11 @@
       background-color: darkgreen;
     }
 
+    #project-name-section,
+    #upload-button {
+      display: none;
+    }
+
     #file-list {
       margin-top: 10px;
       text-align: left;
@@ -157,19 +162,21 @@
   <h1>DeployX - Website Previewer</h1>
 
   <div class="container">
-    <form id="uploadForm" method="post" enctype="multipart/form-data">
+    <form id="upload-form">
       <div class="upload-box" id="drop-area">
         <p>Drag and drop your project files here or click to browse</p>
         <input type="file" id="fileElem" name="files[]" multiple>
         <button type="button" onclick="document.getElementById('fileElem').click();">Browse Files</button>
       </div>
 
-      <input type="text" name="folder_name" id="folderName" placeholder="Folder Name (required)" required>
-      <input type="text" name="repo_url" placeholder="GitHub Repo URL (optional)">
-
       <div id="file-list"></div>
 
-      <button type="submit">Upload & Preview</button>
+      <div id="project-name-section">
+        <label for="project-name-input">Project Folder Name:</label>
+        <input type="text" name="folder_name" id="project-name-input" required>
+      </div>
+
+      <button type="submit" id="upload-button">Upload & Preview</button>
       <div class="loader" id="loader"></div>
     </form>
   </div>
@@ -182,13 +189,17 @@
     const dropArea = document.getElementById('drop-area');
     const fileInput = document.getElementById('fileElem');
     const fileList = document.getElementById('file-list');
-    const form = document.getElementById('uploadForm');
-    const loader = document.getElementById('loader');
+    const form = document.getElementById('upload-form');
+    const projectNameSection = document.getElementById('project-name-section');
+    const projectNameInput = document.getElementById('project-name-input');
+    const uploadButton = document.getElementById('upload-button');
     const iframeContainer = document.getElementById('iframe-container');
-    const previewFrame = document.getElementById('preview-frame');
+    const loader = document.getElementById('loader');
 
     let filesToUpload = [];
+    let filesUploaded = false;
 
+    // Utility to display selected file names
     function updateFileList() {
       fileList.innerHTML = '';
       filesToUpload.forEach(file => {
@@ -198,6 +209,7 @@
       });
     }
 
+    // Drag & Drop
     dropArea.addEventListener('dragover', e => {
       e.preventDefault();
       dropArea.style.borderColor = 'lime';
@@ -213,26 +225,34 @@
       dropArea.style.borderColor = '#555';
       filesToUpload.push(...e.dataTransfer.files);
       updateFileList();
+      filesUploaded = true;
+      projectNameSection.style.display = 'block';
     });
 
+    // File Picker
     fileInput.addEventListener('change', () => {
       filesToUpload.push(...fileInput.files);
       updateFileList();
+      filesUploaded = true;
+      projectNameSection.style.display = 'block';
     });
 
+    // Enable upload button
+    projectNameInput.addEventListener('input', () => {
+      if (projectNameInput.value.trim() !== '' && filesUploaded) {
+        uploadButton.style.display = 'inline-block';
+      } else {
+        uploadButton.style.display = 'none';
+      }
+    });
+
+    // Submit form
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       loader.style.display = 'block';
 
       const formData = new FormData();
-      const folderName = document.getElementById('folderName').value.trim();
-      const repoURL = form.querySelector('input[name="repo_url"]').value.trim();
-
-      formData.append('folder_name', folderName);
-      if (repoURL !== "") {
-        formData.append('repo_url', repoURL);
-      }
-
+      formData.append('folder_name', projectNameInput.value.trim());
       filesToUpload.forEach(file => {
         formData.append('files[]', file);
       });
@@ -245,7 +265,7 @@
       .then(data => {
         loader.style.display = 'none';
         if (data.status === 'static' || data.status === 'flask') {
-          previewFrame.src = data.url;
+          document.getElementById('preview-frame').src = data.url;
           form.style.display = 'none';
           iframeContainer.style.display = 'block';
         } else {
