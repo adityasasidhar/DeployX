@@ -6,6 +6,7 @@ from src.import_from_git import clone_github_repo
 from src.language_task import get_lang_percentage
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from src.testing import lint_project
+from src.fix_with_ai import fix_a_project, fix_the_code
 
 """
 
@@ -17,27 +18,18 @@ from src.testing import lint_project
                                                                |
                                                 figure out the language percentage
                                                                |
-                                                    check for syntax errors
-                                                     |                  |
-                                        error is found                 error is not found
-                        {                   |                           {
-                        clear the uploaded folder                       continue with the emulation and 
-                        and reprompt for the correctness                display the website
-                                       |                }                                             }
-                                       |
-                          restart the Flow of Program              
+                                            check for syntax errors and code issues
+                                            |                                     |
+                                error is found                                     error is not found
+                                |             |                                    {
+ {       clear the uploaded folder          fix with AI                              continue with the emulation and 
+and reprompt for the correctness                 |                                    display the website
+                        |       _________________|                                                                            }
+                        |       |                 
+            restart the Flow of Program              
 
 
 """
-
-# this comes from a person with strong node.js attachment
-# fix the errors beforehand
-# predominantly AI writes the code, code should not be changed unless the instruction has been specifically provided
-# automatic version detection
-# automating the testing the routes, api and all
-# take into account .env file
-# automatic route detection and directory based storage and testing, ai based
-# ALLOCATE MISPLACED ITEMS
 
 app = Flask(__name__)
 
@@ -160,7 +152,6 @@ def upload_project():
 
     else:
         return jsonify({'status': 'error', 'message': 'Unknown project type: No app.py or index.html found'})
-
 
 
 @app.route('/preview/<project>/<path:filename>')

@@ -1,0 +1,8 @@
+# this comes from a person with strong node.js attachment
+# fix the errors beforehand
+# predominantly AI writes the code, code should not be changed unless the instruction has been specifically provided
+# automatic version detection
+# automating the testing the routes, api and all (something related to postman and all)
+# take into account .env file
+# automatic route detection and directory based storage and testing, ai based
+# ALLOCATE MISPLACED ITEMS
