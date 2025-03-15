@@ -1,11 +1,11 @@
 import os
 import shutil
 import subprocess
-from testing import lint_project
 from werkzeug.utils import secure_filename
 from src.import_from_git import clone_github_repo
 from src.language_task import get_lang_percentage
 from flask import Flask, render_template, request, jsonify, send_from_directory
+from src.testing import lint_project
 
 """
 
@@ -73,7 +73,6 @@ def upload_project():
     lang_percentages = get_lang_percentage(project_path)
     print(lang_percentages)
     lint_project(project_path)
-
     if os.path.exists(os.path.join(project_path, 'app.py')):
         try:
             port = 5001

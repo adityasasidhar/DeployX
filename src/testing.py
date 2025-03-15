@@ -115,18 +115,24 @@ def collect_relevant_files(directory):
 
 def run_all_checks(directory):
     file_types = collect_relevant_files(directory)
+    all_passed = True
 
     for py_file in file_types['.py']:
-        check_python_file(py_file)
+        if not check_python_file(py_file):
+            all_passed = False
 
-    for js_file in file_types['.js']:
-      check_js_file(file_types['.js'])
+    if not check_js_file(file_types['.js']):
+        all_passed = False
 
     for css_file in file_types['.css']:
-        check_css_file(css_file)
+        if not check_css_file(css_file):
+            all_passed = False
 
     for html_file in file_types['.html']:
-        check_html_file(html_file)
+        if not check_html_file(html_file):
+            all_passed = False
+
+    return all_passed
 
 
 def lint_project(path="."):
@@ -134,6 +140,14 @@ def lint_project(path="."):
     print(f"\n📁 Scanning project at: {path}")
     if not os.path.exists(path):
         print(f"❌ The path '{path}' does not exist.")
-        return
-    run_all_checks(path)
+        return False
+
+    result = run_all_checks(path)
+    if result:
+        print("\n✅ All files passed checks successfully!")
+    else:
+        print("\n❌ Some files failed the checks.")
+
+    return result
+
 
