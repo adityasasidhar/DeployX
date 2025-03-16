@@ -6,7 +6,6 @@ from src.import_from_git import clone_github_repo
 from src.language_task import get_lang_percentage
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from src.testing import lint_project
-from src.fix_with_ai import fix_a_project, fix_the_code
 
 """
 
@@ -18,11 +17,16 @@ from src.fix_with_ai import fix_a_project, fix_the_code
                                                                |
                                                 figure out the language percentage
                                                                |
+                                                       Are you satisfied?
+                                                               |
+                                                 DO YOU WANT TO CHECK FOR ERRORS?
+                                                                |
+                                                            
                                             check for syntax errors and code issues
                                             |                                     |
                                 error is found                                     error is not found
                                 |             |                                    {
- {       clear the uploaded folder          fix with AI                              continue with the emulation and 
+ {       clear the uploaded folder          suggest with AI                              continue with the emulation and 
 and reprompt for the correctness                 |                                    display the website
                         |       _________________|                                                                            }
                         |       |                 
@@ -53,7 +57,7 @@ def upload_project():
         try:
             clone_github_repo(repo_url, clone_dir=UPLOAD_FOLDER)
             repo_name = repo_url.rstrip('/').split('/')[-1].replace('.git', '')
-            project_path = os.path.join(UPLOAD_FOLDER, repo_name)
+            projectgu_path = os.path.join(UPLOAD_FOLDER, repo_name)
         except Exception as e:
             return jsonify({'status': 'error', 'message': f'Failed to clone: {str(e)}'})
     else:

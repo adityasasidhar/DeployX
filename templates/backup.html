@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DeployX - Website Previewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #000;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      text-align: center;
+    }
+    h1 {
+      margin: 40px 0 20px;
+      font-size: 2.5rem;
+      color: lime;
+      animation: fadeIn 1s ease-in-out;
+    }
+    .container {
+      width: 90%;
+      max-width: 800px;
+      padding: 20px;
+    }
+    .upload-box {
+      border: 2px dashed #555;
+      padding: 30px;
+      border-radius: 12px;
+      background-color: #111;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px #00ff0070;
+      margin-bottom: 20px;
+    }
+    .upload-box:hover {
+      border-color: lime;
+      background-color: #181818;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: #222;
+      color: white;
+      border: 1px solid #444;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: lime;
+    }
+    button {
+      padding: 12px 24px;
+      background-color: lime;
+      color: black;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+      box-shadow: 0 0 10px #00ff00a0;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: darkgreen;
+    }
+    #file-list {
+      margin-top: 10px;
+      text-align: left;
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 14px;
+      color: #ccc;
+    }
+    #iframe-container {
+      width: 100%;
+      max-width: 1000px;
+      height: 80vh;
+      border: 2px solid white;
+      display: none;
+      margin-top: 30px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 20px lime;
+      animation: fadeIn 1s ease-in-out;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .loader {
+      display: none;
+      margin-top: 20px;
+      border: 4px solid #444;
+      border-top: 4px solid lime;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @media screen and (max-width: 768px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+      .upload-box {
+        padding: 20px;
+      }
+      iframe {
+        height: 70vh;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>DeployX - Website Previewer</h1>
+
+  <div class="container">
+    <form id="uploadForm" method="post" enctype="multipart/form-data">
+      <div class="upload-box" id="drop-area">
+        <p>Drag and drop your project files here or click to browse</p>
+        <input type="file" id="fileElem" name="files[]" multiple>
+        <button type="button" onclick="document.getElementById('fileElem').click();">Browse Files</button>
+      </div>
+
+      <input type="text" name="folder_name" id="folderName" placeholder="Folder Name (required)" required>
+      <input type="text" name="repo_url" placeholder="GitHub Repo URL (optional)">
+
+      <div id="file-list"></div>
+
+      <button type="submit">Upload & Preview</button>
+      <div class="loader" id="loader"></div>
+    </form>
+  </div>
+
+  <div id="iframe-container">
+    <iframe id="preview-frame"></iframe>
+  </div>
+
+  <script>
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('fileElem');
+    const fileList = document.getElementById('file-list');
+    const form = document.getElementById('uploadForm');
+    const loader = document.getElementById('loader');
+    const iframeContainer = document.getElementById('iframe-container');
+    const previewFrame = document.getElementById('preview-frame');
+
+    let filesToUpload = [];
+
+    function updateFileList() {
+      fileList.innerHTML = '';
+      filesToUpload.forEach(file => {
+        const item = document.createElement('div');
+        item.textContent = '📄 ' + file.name;
+        fileList.appendChild(item);
+      });
+    }
+
+    dropArea.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropArea.style.borderColor = 'lime';
+    });
+
+    dropArea.addEventListener('dragleave', e => {
+      e.preventDefault();
+      dropArea.style.borderColor = '#555';
+    });
+
+    dropArea.addEventListener('drop', e => {
+      e.preventDefault();
+      dropArea.style.borderColor = '#555';
+      filesToUpload.push(...e.dataTransfer.files);
+      updateFileList();
+    });
+
+    fileInput.addEventListener('change', () => {
+      filesToUpload.push(...fileInput.files);
+      updateFileList();
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      loader.style.display = 'block';
+
+      const formData = new FormData();
+      const folderName = document.getElementById('folderName').value.trim();
+      const repoURL = form.querySelector('input[name="repo_url"]').value.trim();
+
+      if (!folderName) {
+        alert("Folder name is required.");
+        loader.style.display = 'none';
+        return;
+      }
+
+      formData.append('folder_name', folderName);
+      if (repoURL !== "") {
+        formData.append('repo_url', repoURL);
+      }
+
+      filesToUpload.forEach(file => {
+        formData.append('files[]', file);
+      });
+
+      fetch('/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        loader.style.display = 'none';
+
+        if (data.status === 'static' || data.status === 'flask') {
+          // Show preview URL in iframe
+          previewFrame.src = data.url;
+          form.style.display = 'none';
+          iframeContainer.style.display = 'block';
+        } else {
+          alert('Error: ' + data.message || 'Unknown error.');
+        }
+      })
+      .catch(err => {
+        loader.style.display = 'none';
+        alert('Upload failed: ' + err.message);
+      });
+    });
+  </script>
+
+</body>
+</html>

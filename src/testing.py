@@ -110,7 +110,6 @@ def collect_relevant_files(directory):
             ext = os.path.splitext(file)[1]
             if ext in valid_extensions and ext not in EXCLUDED_EXTENSIONS:
                 file_types[ext].append(os.path.join(root, file))
-
     return file_types
 
 def run_all_checks(directory):
