@@ -1,11 +1,14 @@
 import os
 import shutil
 import subprocess
+from src.path import get_path
 from werkzeug.utils import secure_filename
 from src.import_from_git import clone_github_repo
 from src.language_task import get_lang_percentage
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from src.testing import lint_project
+from src.check_with_AI import analyze_all_code_files
+from src.fix_with_ai import fix_the_code, fix_a_project
 
 """
 
@@ -21,7 +24,6 @@ from src.testing import lint_project
                                                                |
                                                  DO YOU WANT TO CHECK FOR ERRORS?
                                                                 |
-                                                            
                                             check for syntax errors and code issues
                                             |                                     |
                                 error is found                                     error is not found
@@ -57,7 +59,7 @@ def upload_project():
         try:
             clone_github_repo(repo_url, clone_dir=UPLOAD_FOLDER)
             repo_name = repo_url.rstrip('/').split('/')[-1].replace('.git', '')
-            projectgu_path = os.path.join(UPLOAD_FOLDER, repo_name)
+            project_path = os.path.join(UPLOAD_FOLDER, repo_name)
         except Exception as e:
             return jsonify({'status': 'error', 'message': f'Failed to clone: {str(e)}'})
     else:
@@ -69,6 +71,7 @@ def upload_project():
     lang_percentages = get_lang_percentage(project_path)
     print(lang_percentages)
     lint_project(project_path)
+
     if os.path.exists(os.path.join(project_path, 'app.py')):
         try:
             port = 5001
@@ -81,7 +84,6 @@ def upload_project():
         except Exception as e:
             return jsonify({'status': 'error', 'message': str(e)})
 
-
     elif os.path.exists(os.path.join(project_path, 'index.html')):
         static_path = os.path.join(STATIC_SERVE_FOLDER, folder_name)
         if os.path.exists(static_path):
@@ -92,19 +94,6 @@ def upload_project():
             'url': f'/preview/{folder_name}/index.html',
             'languages': lang_percentages
         })
-
-    elif os.path.exists(os.path.join(project_path, 'package.json')):
-        try:
-            port = 5001
-            subprocess.Popen(['npm', 'install'], cwd=project_path)
-            subprocess.Popen(['npm', 'start'], cwd=project_path)
-            return jsonify({
-                'status': 'node',
-                'url': f'http://localhost:{port}',
-                'languages': lang_percentages
-            })
-        except Exception as e:
-            return jsonify({'status': 'error', 'message': str(e)})
 
     elif os.path.exists(os.path.join(project_path, 'build')) or os.path.exists(os.path.join(project_path, 'dist')):
         static_path = os.path.join(STATIC_SERVE_FOLDER, folder_name)
@@ -118,45 +107,8 @@ def upload_project():
             'url': f'/preview/{folder_name}/index.html',
             'languages': lang_percentages
         })
-
-    elif os.path.exists(os.path.join(project_path, 'vite.config.js')):
-        try:
-            subprocess.run(['npm', 'install'], cwd=project_path)
-            subprocess.run(['npm', 'run', 'build'], cwd=project_path)
-            static_path = os.path.join(STATIC_SERVE_FOLDER, folder_name)
-            if os.path.exists(static_path):
-                shutil.rmtree(static_path)
-            shutil.copytree(os.path.join(project_path, 'dist'), static_path)
-            return jsonify({
-                'status': 'static',
-                'framework': 'Vite',
-                'url': f'/preview/{folder_name}/index.html',
-                'languages': lang_percentages
-            })
-        except Exception as e:
-            return jsonify({'status': 'error', 'message': str(e)})
-
-    elif os.path.exists(os.path.join(project_path, 'parcel.config.js')):
-        try:
-            subprocess.run(['npm', 'install'], cwd=project_path)
-            subprocess.run(['npx', 'parcel', 'build', 'index.html'], cwd=project_path)
-            static_path = os.path.join(STATIC_SERVE_FOLDER, folder_name)
-            if os.path.exists(static_path):
-                shutil.rmtree(static_path)
-            shutil.copytree(os.path.join(project_path, 'dist'), static_path)
-            return jsonify({
-                'status': 'static',
-                'framework': 'Parcel',
-                'url': f'/preview/{folder_name}/index.html',
-                'languages': lang_percentages
-            })
-        except Exception as e:
-            return jsonify({'status': 'error', 'message': str(e)})
-
-
     else:
         return jsonify({'status': 'error', 'message': 'Unknown project type: No app.py or index.html found'})
-
 
 @app.route('/preview/<project>/<path:filename>')
 def preview_static(project, filename):

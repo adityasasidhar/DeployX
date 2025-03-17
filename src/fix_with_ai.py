@@ -6,7 +6,7 @@ from src.testing import (
     collect_relevant_files
 )
 
-with open('../api keys/groq.txt', 'r') as f:
+with open('api keys/groq.txt', 'r') as f:
     api_key = f.read().strip()
 
 url = "https://api.groq.com/openai/v1/chat/completions"
@@ -113,5 +113,3 @@ def fix_a_project(project_path):
             print(f"❌ Error processing JS file {file}: {e}")
 
     print("\n🎉 All files have been processed and saved to:", fixed_project_path)
-
-fix_a_project('../WebsiteWithErrors')
