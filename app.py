@@ -1,14 +1,11 @@
-import os
-import shutil
+import os , shutil
 import subprocess
-from src.path import get_path
 from werkzeug.utils import secure_filename
-from src.import_from_git import clone_github_repo
-from src.language_task import get_lang_percentage
+from import_from_git import clone_github_repo
+from language_task import get_lang_percentage
 from flask import Flask, render_template, request, jsonify, send_from_directory
-from src.testing import lint_project
-from src.check_with_AI import analyze_all_code_files
-from src.fix_with_ai import fix_the_code, fix_a_project
+from testing import lint_project
+from ai_utils import *
 
 """
 
@@ -33,10 +30,7 @@ and reprompt for the correctness                 |                              
                         |       _________________|                                                                            }
                         |       |                 
             restart the Flow of Program              
-
-
 """
-
 app = Flask(__name__)
 
 UPLOAD_FOLDER = 'uploaded_projects'
