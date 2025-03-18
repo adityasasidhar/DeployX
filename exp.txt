@@ -6,3 +6,21 @@
 # take into account .env file
 # automatic route detection and directory based storage and testing, ai based
 # ALLOCATE MISPLACED ITEMS
+
+check for multiple pages in vm
+Add a button between when the project is uploaded (show me the project)
+add a New button will be at the bottom (I am satisfied with the project)
+New page (Do you want to check for security issues)
+Yes (Show in ordered format all the issues)
+Fix with AI
+Mistral suggestion
+NO (Direct to next page )
+What is your website?
+Suggestion for best deployemnt platform
+4 Deployemnt Page
+
+2. ts, react next js an node  addition to
+3.
+
+
+1.

@@ -1,36 +1,13 @@
-import os , shutil
+import os
+import shutil
 import subprocess
 from werkzeug.utils import secure_filename
 from import_from_git import clone_github_repo
 from language_task import get_lang_percentage
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from testing import lint_project
-from ai_utils import *
+from ai_utils import fix_a_project, analyze_all_code_files
 
-"""
-
-
-                                                       Flow of Program:
-                                                               |
-                                                  Upload the directory/files either
-                                                through drag and drop or by github url
-                                                               |
-                                                figure out the language percentage
-                                                               |
-                                                       Are you satisfied?
-                                                               |
-                                                 DO YOU WANT TO CHECK FOR ERRORS?
-                                                                |
-                                            check for syntax errors and code issues
-                                            |                                     |
-                                error is found                                     error is not found
-                                |             |                                    {
- {       clear the uploaded folder          suggest with AI                              continue with the emulation and 
-and reprompt for the correctness                 |                                    display the website
-                        |       _________________|                                                                            }
-                        |       |                 
-            restart the Flow of Program              
-"""
 app = Flask(__name__)
 
 UPLOAD_FOLDER = 'uploaded_projects'
